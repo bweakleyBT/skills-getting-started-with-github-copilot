@@ -142,3 +142,37 @@ footer {
   padding: 20px;
   color: #666;
 }
+
+.participants {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #ececec;
+}
+
+.participants-header {
+  margin-bottom: 8px;
+  color: #1a237e;
+  font-size: 14px;
+}
+
+.participants-list {
+  list-style: disc;
+  margin-left: 18px;
+  color: #444;
+  font-size: 14px;
+  max-height: 140px;
+  overflow: auto;
+  padding-right: 6px; /* room for scrollbar */
+}
+
+.participants-list li {
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.participants-list .no-participants {
+  font-style: italic;
+  color: #777;
+  list-style-type: none;
+  margin-left: 0;
+}
