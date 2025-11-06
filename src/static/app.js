@@ -10,8 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("/activities");
       const activities = await response.json();
 
-      // Clear loading message
-      activitiesList.innerHTML = "";
+  // Clear loading message
+  activitiesList.innerHTML = "";
+
+  // Reset activity select to the default placeholder to avoid duplicate options
+  activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
@@ -42,7 +45,55 @@ document.addEventListener("DOMContentLoaded", () => {
         if (Array.isArray(details.participants) && details.participants.length > 0) {
           details.participants.forEach((p) => {
             const li = document.createElement("li");
-            li.textContent = p;
+            li.className = "participant-item";
+
+            // participant email
+            const span = document.createElement("span");
+            span.className = "participant-email";
+            span.textContent = p;
+
+            // delete button
+            const btn = document.createElement("button");
+            btn.className = "delete-btn";
+            btn.setAttribute("aria-label", `Unregister ${p} from ${name}`);
+            btn.textContent = "✖";
+
+            // handle delete click
+            btn.addEventListener("click", async (ev) => {
+              ev.stopPropagation();
+              if (!confirm(`Unregister ${p} from ${name}?`)) return;
+              try {
+                const resp = await fetch(
+                  `/activities/${encodeURIComponent(name)}/participants?email=${encodeURIComponent(p)}`,
+                  { method: "DELETE" }
+                );
+
+                const result = await resp.json().catch(() => ({}));
+
+                if (resp.ok) {
+                  messageDiv.textContent = result.message || "Participant removed";
+                  messageDiv.className = "success";
+                  messageDiv.classList.remove("hidden");
+                  // refresh activities to reflect removal
+                  fetchActivities();
+                } else {
+                  messageDiv.textContent = result.detail || "Failed to remove participant";
+                  messageDiv.className = "error";
+                  messageDiv.classList.remove("hidden");
+                }
+
+                // hide after a moment
+                setTimeout(() => messageDiv.classList.add("hidden"), 4000);
+              } catch (error) {
+                console.error("Error unregistering participant:", error);
+                messageDiv.textContent = "Failed to unregister participant. Please try again.";
+                messageDiv.className = "error";
+                messageDiv.classList.remove("hidden");
+              }
+            });
+
+            li.appendChild(span);
+            li.appendChild(btn);
             ul.appendChild(li);
           });
         } else {
@@ -90,6 +141,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        // Refresh activities so the newly signed-up participant appears immediately
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
